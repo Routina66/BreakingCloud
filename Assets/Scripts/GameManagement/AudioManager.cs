@@ -4,8 +4,7 @@ using System.Collections;
 /// <summary>
 /// Can play one music and array of effects at same time.
 /// </summary>
-[Prefab("AudioManager", true)]
-public class AudioManager : Singleton<AudioManager> {
+public class AudioManager : MonoBehaviour {
 
 	#region Readonly fileds
 	#endregion
@@ -70,6 +69,19 @@ public class AudioManager : Singleton<AudioManager> {
 		foreach (var effectSource in effectsSource) {
 			effectSource.mute = mute;
 		}
+	}
+
+	public void PlayMarkTileSound(Tile tile) {
+		if (tile.IsMarked) {
+			PlayEffect(tile.MarkSound, tile.transform.position);
+		}
+		else {
+			PlayEffect(tile.DismarkSound, tile.transform.position);
+		}
+	}
+
+	public void PlayExposeTileSound(Tile tile) {
+		PlayEffect(tile.ExposeSound, tile.transform.position);
 	}
 	#endregion
 

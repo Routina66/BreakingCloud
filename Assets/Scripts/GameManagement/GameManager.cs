@@ -1,76 +1,78 @@
 using UnityEngine;
 using UnityEngine.Events;
-using System.Collections.Generic;
 using CrazyGames;
 using TMPro;
 
 /// <summary>
-/// It controls the game.
+/// Manage general game data.
+///    
+/// Save game state to persistent storage.
+/// Ñoad game state upon startup. 
+/// Laises an event when the game state loads.
 /// </summary>
 public class GameManager : MonoBehaviour {
     #region Readonly fileds
-    private readonly string GameDatakey = "GameData";
+    private readonly string GameDatakey = "GameStatus";
     #endregion
 
     #region Serialize fields
     [SerializeField]
+    private ObjectsManager objectsManager;
+    [SerializeField]
+    private ScreenManager screenManager;
+    [SerializeField]
+    private AdsManager adsManager;
+    //[SerializeField]
+    //private int rewardMultiplier = 2;
+    [SerializeField]
     private TextMeshProUGUI debugText;
-    [SerializeField]
-    private int breakBrickReward;
-    [SerializeField]
-    private int screenCount;
-    [SerializeField]
-    private GameStore playerInventory;
-    [SerializeField]
-    private GameStore gameInventory;
     #endregion
 
     #region Private fields
-    private GameData gameData;
+    private GameStatus gameStatus;
     #endregion
 
     #region Properties
-    public int CurrentScreen {
-        get => gameData.level;
-        set => gameData.level = value;
-    }
-
-    public int CurrentMoney {
-        get => gameData.money;
-        set => gameData.money = value;
-    }
-
-    public GameStore PlayerInventory {
-        get => playerInventory;
-    }
     #endregion
 
     #region Events
     [Header("Events")]
     [Tooltip("Sends the loaded data.")]
-    public UnityEvent<GameData> OnGameDataLoaded;
-    [Tooltip("An addblock is detected.")]
-    public UnityEvent AddblockDetected;
+    public UnityEvent<GameStatus> OnLoadGameStatus;
+    [Tooltip("When the player can multiply the reward, it sends an event")]
+    public UnityEvent OnMultiplyReward;
+    [Tooltip("When the player can continue playing a failed level, it sends an event")]
+    public UnityEvent OnContinuePlay;
     #endregion
 
+    /// <summary>
+    /// On awake:
+    ///   - It loads the last saved game status.
+    ///   - It sends the game status in an event.
+    ///   - It initialize de ads.
+    /// </summary>
     #region Unity methods
     private void Awake() {
-        CrazySDK.Ad.HasAdblock((adblockActive) => {
-            if (adblockActive) {
-                AddblockDetected.Invoke();
-            }
+        string data = PlayerPrefs.GetString(GameDatakey, string.Empty);
 
-            //Debug.Log("adblock: " + adblockActive.ToString());
-            debugText.text += "adblock: " + adblockActive + "\n";
-        });
-        
-        //Debug.Log("Loading game data.");
-        debugText.text += "Loading game data.\n" ;
-        playerInventory.Set();
-        gameInventory.Set();
+        gameStatus = new GameStatus();
 
-        LoadGameData();
+        if (string.IsNullOrEmpty(data)) {
+            SaveGame();
+            debugText.text += "New game\n";
+        }
+        else {
+            JsonUtility.FromJsonOverwrite(data, gameStatus);
+            debugText.text += "Old game\n";
+        }
+
         debugText.text += "Game data loaded.\n";
+
+        OnLoadGameStatus.Invoke(gameStatus);
+
+        CrazySDK.Init(() => {
+            adsManager.InitializeAds();
+        }); 
     }
 
     private void OnDestroy() {
@@ -79,183 +81,114 @@ public class GameManager : MonoBehaviour {
     #endregion
 
     #region Public methods
-    public void OnLevelEnd(EndLevelInfoBox infobox) {
-        var levelReport = infobox.LevelReport;
+    public void PlayCurrentLevel() {
+        screenManager.PlayLevel(
+            objectsManager.SelectedPlayer,
+            gameStatus.currentLevel);
+    }
 
-        if (levelReport.success && !gameData.GameEnded) {
-            CurrentScreen++;
-
-            if (CurrentScreen >= screenCount ) {
-                gameData.GameEnded = true;
-                CrazySDK.Game.HappyTime();
-                Debug.Log("HappyTime");
-            }
+    public void FinishLevel(LevelReport levelReport) {
+        if (levelReport.levelSuccess && !gameStatus.gameEnded) {
+            gameStatus.currentLevel = 
+                levelReport.levelPlayed + 1;
         }
 
-        levelReport.screen.gameObject.SetActive(false);
-
-        playerInventory.AddPlayObject(levelReport.ball);
-        playerInventory.AddPlayObject(levelReport.cloud);
-        playerInventory.AddMoney(MoneyType.GameMoney, levelReport.totalReward);
+        objectsManager.SelectedPlayer = levelReport.player;
+        objectsManager.GiveRewardToPlayer(levelReport.totalReward);
         
-        //CurrentMoney = playerInventory.GetMoneyQuantity(MoneyType.GameMoney);
-        //gameInventory.SetMoney(MoneyType.GameMoney, gameData.money);
+        screenManager.EndCurrentLevel();
+        
+        SaveGame();
+    }
+
+    public void BuyPlayObject(PlayObjectData playObjectData) {
+        gameStatus.playerInventory.Add(playObjectData.Identifier);
 
         SaveGame();
     }
 
-    public void OnBuyObject(PlayObjectData playObjectData) {
-
-        switch (playObjectData.Type) {
-            case PlayObjectType.Ball:
-                gameData.balls.Add(playObjectData.Identifier);
-                break;
-
-            case PlayObjectType.Cloud:
-                gameData.clouds.Add(playObjectData.Identifier);
-                break;
-        }
+    public void EquipPlayObject(PlayObjectData playObjectData) {
+        gameStatus.equipedObject = playObjectData.Identifier;
 
         SaveGame();
     }
 
-    public void OnEquipPlayObject(PlayObjectData playObjectData) {
-        switch (playObjectData.Type) {
-            case PlayObjectType.Ball:
-                gameData.equipedBall = playObjectData.Identifier;
-                break;
-
-            case PlayObjectType.Cloud:
-                gameData.equipedCloud = playObjectData.Identifier;
-                break;
-        }
+    public void UpdateMoney(MoneyType moneyType, int newAmount) {
+        gameStatus.playerMoney = newAmount;
 
         SaveGame();
     }
 
-    public void OnChangeMoney(MoneyType moneyType, int newAmount) {
-        CurrentMoney = newAmount;
-
-        SaveGame();
+    public void RequestContinuePlay() {
+        adsManager.OnEarnReward.AddListener(ContinuePlay);
+        adsManager.ShowRewardedAd();
     }
 
-    public void ShowAd(EndLevelInfoBox infobox) {
-        CrazySDK.Ad.RequestAd(
-            CrazyAdType.Rewarded,
-            null,
-            null, 
-            () => DuplicateReward(infobox));
+    public void RequestMultiplyReward() {
+        adsManager.OnEarnReward.AddListener(MultiplyReward);
+
+        adsManager.ShowRewardedAd();
+    }
+
+    public void RequestPowerUp(PlayObject powerUpPrefab) {
+        adsManager.OnEarnReward.AddListener( delegate {
+            GetPowerUp(powerUpPrefab);
+        });
+
+        adsManager.ShowRewardedAd();
     }
 
     public void GoToLink(string link) {
         Application.OpenURL(link);
     }
     #endregion
+
     #region Protected methods
     #endregion
 
     #region Private methods
-    private void LoadGameData() {
+    /*private void LoadGameStatus() {
         string data = PlayerPrefs.GetString(GameDatakey, string.Empty);
 
-        gameData = new GameData();
+        gameStatus = new GameStatus();
 
         if (string.IsNullOrEmpty(data)) {
             SaveGame();
-            //Debug.Log("New game");
             debugText.text += "New game\n";
         }
         else {
-            JsonUtility.FromJsonOverwrite(data, gameData);
-            //Debug.Log("Old game");
+            JsonUtility.FromJsonOverwrite(data, gameStatus);
             debugText.text += "Old game\n";
         }
 
-        //Debug.Log("Game data loaded");"
-
         debugText.text += "Game data initialized.\n";
 
-        LoadPlayObjects(gameData.balls);
-        LoadPlayObjects(gameData.clouds);
+        OnLoadGameStatus.Invoke(gameStatus);
+    }*/
 
-        //Debug.Log("Play objects loaded");
-        debugText.text += "Play objects loaded.\nLoading money\n";
+    private void ContinuePlay() {
+        adsManager.OnEarnReward.RemoveListener(ContinuePlay);
 
-        playerInventory.SetMoney(MoneyType.GameMoney, 0);
-        debugText.text += "Player money " + playerInventory.GetMoneyQuantity(MoneyType.GameMoney);
-        playerInventory.AddMoney(MoneyType.GameMoney, gameData.money);
-        debugText.text += "\nPlayer money " + playerInventory.GetMoneyQuantity(MoneyType.GameMoney);
-
-        //Debug.Log("Money loaded");
-
-        debugText.text += "\nMoney loaded.\n";
-
-        OnGameDataLoaded.Invoke(gameData);
+        OnContinuePlay.Invoke();
     }
 
-    private void LoadPlayObjects(List<string> playObjetIds) {
-        PlayObjectData playObjectData;
-        if (gameInventory == null) {
-            debugText.text += "Game inventory null.\n";
-        }
+    private void MultiplyReward() {
+        adsManager.OnEarnReward.RemoveListener(MultiplyReward);
 
-        if (playerInventory == null) {
-            debugText.text += "Player inventory null.\n";
-        }
+        OnMultiplyReward.Invoke();
+    }
 
-        if (playerInventory != null && gameInventory != null) {
+    private void GetPowerUp(PlayObject powerUpPrefab) {
+        adsManager.OnEarnReward.RemoveListener(delegate {
+            GetPowerUp(powerUpPrefab);
+        });
 
-            foreach (var id in playObjetIds) {
-                playObjectData = gameInventory.GetObjectData(id);
-
-                if (playObjectData == null) {
-                    //Debug.Log(id + " is null");
-                    debugText.text += id + " is null.\n";
-                }
-                else {
-                    playerInventory.AddPlayObject(
-                        gameInventory.GetPlayObject(playObjectData));
-
-                    //Debug.Log(id + " added to player inventory.");
-                    debugText.text += id + " added to player inventory.\n";
-                }
-            }
-        }
+        objectsManager.SendPlayObject(Instantiate(powerUpPrefab));
     }
 
     private void SaveGame() {
-        PlayerPrefs.SetString(GameDatakey, JsonUtility.ToJson(gameData));
+        PlayerPrefs.SetString(GameDatakey, JsonUtility.ToJson(gameStatus));
     }
-
-    private void DuplicateReward(EndLevelInfoBox infobox) {
-        var report = infobox.LevelReport;
-
-        report.successReward *= 2;
-        report.bricksBrokenReward *= 2;
-        report.objectsInPlaceReward *= 2;
-        report.totalReward *= 2;
-
-        infobox.ShowInfo(report);
-    }
-
-    /*private void DebugData(string state) {
-        Debug.Log(state);
-        Debug.Log("- Money " + gameData.money);
-        Debug.Log("- Balls:");
-
-        foreach (var ball in gameData.balls) {
-            Debug.Log("    " + ball);
-        }
-
-        Debug.Log("- Clouds:");
-
-        foreach (var cloud in gameData.clouds) {
-            Debug.Log("    " + cloud);
-        }
-
-        Debug.Log("Equiped ball: " + gameData.equipedBall);
-        Debug.Log("Equiped cloud: " + gameData.equipedCloud);
-    }*/
     #endregion
 
     #region Coroutines

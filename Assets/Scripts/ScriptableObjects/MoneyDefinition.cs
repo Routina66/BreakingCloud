@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// A ScriptableObject witch defines data of some MoneyType.
 /// </summary>
-[CreateAssetMenu(fileName = "New MoneyDefinition", menuName = "InventoryAndStore/MoneyDefinition")]
+[CreateAssetMenu(fileName = "New MoneyDefinition", menuName = "ScriptableObjects/MoneyDefinition")]
 public class MoneyDefinition : ScriptableObject
 {
 	#region Fields

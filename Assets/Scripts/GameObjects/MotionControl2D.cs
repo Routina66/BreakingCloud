@@ -1,9 +1,5 @@
 using UnityEngine;
-using System.Collections;
-using UnityEngine.PlayerLoop;
-using System;
-using CrazyGames;
-
+using UnityEngine.Animations;
 
 /// <summary>
 /// Applies a velocity to a rigidbody when the user presses the keys of
@@ -18,7 +14,7 @@ public class MotionControl2D : MonoBehaviour {
     #endregion
 
     #region Private fields
-    private float xAxis = 0f;
+    private float xAxis;
     #endregion
 
     #region Properties
@@ -28,24 +24,13 @@ public class MotionControl2D : MonoBehaviour {
     #endregion
 
     #region Unity methods
-    private void Update() {
-        if (CrazySDK.User.SystemInfo.device.type.Equals(CrazySettingsDeviceType.desktop.ToString())) {
-            xAxis = Input.GetAxis(Constants.HorizontalAxis);
-        }
-        else {
-            if (Input.touchCount == 1) {
-                if (Input.GetTouch(0).position.x >= Screen.height / 2) {
-                    xAxis = .25f;
-                }
-                else {
-                    xAxis = -.25f;
-                }
-            }
-            else {
-                xAxis = 0f;
-            }
-        }
+    private void Start() {
+        xAxis = 0f;
+    }
 
+    private void Update() {
+        xAxis = Input.GetAxis(Constants.HorizontalAxis);
+                
         if (xAxis == 0 && target.velocity != Vector3.zero) {
             target.velocity = Vector2.zero;
         }

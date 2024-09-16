@@ -182,6 +182,11 @@ mergeInto(LibraryManager.library, {
     window.CrazyGames.SDK.data.setItem(window.unityStringify(key), window.unityStringify(value));
   },
 
+  /** SDK.analytics module */
+  AnalyticsTrackOrderSDK: function (provider, order) {
+    window.CrazyGames.SDK.analytics.trackOrder(window.unityStringify(provider), JSON.parse(window.unityStringify(order)));
+  },
+
   /** other */
   CopyToClipboardSDK: function (text) {
     const elem = document.createElement('textarea');

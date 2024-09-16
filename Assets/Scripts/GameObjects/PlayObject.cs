@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 /// <summary>
 /// A GameObject witch can be bought, sold and stored in a GameStore.
 /// </summary>
-public class PlayObject : MonoBehaviour
+public class PlayObject : MonoBehaviour//, IPointerDownHandler, IPointerUpHandler
 {
 	#region Serialize fields
 	[SerializeField]
@@ -26,7 +26,6 @@ public class PlayObject : MonoBehaviour
 	#endregion
 
 	#region Private fields
-	private AudioManager audioManager;
     #endregion
 
     #region Properties
@@ -52,35 +51,41 @@ public class PlayObject : MonoBehaviour
 	#endregion
 
 	#region Events
-	[Header("Events")]
-	[Tooltip("Sends itself.")]
-	public UnityEvent<PlayObject> OnClick;
+	/*[Header("Events")]
+	[Tooltip("When the pointer down sends itself.")]
+	public UnityEvent<PlayObject> PointerGoneDown;
+	[Tooltip("When the pointer up sends itself.")]
+	public UnityEvent<PlayObject> PointerGoneUp;*/
     #endregion
 
     #region Unity methods
-    private void Awake() {
-		audioManager = AudioManager.Instance;
-    }
-
     private void OnCollisionEnter(Collision collision) {
-        PlaySound(data.Sound);
-
         if (collisionEffect != null) {
 			collisionEffect.transform.position = collision.transform.position;
 			collisionEffect.Play();
 		}
     }
+
+    private void OnCollisionExit(Collision collision) {
+        
+    }
     #endregion
 
     #region Public methods
-    public void Show() {
-        gameObject.SetActive(true);
-		PlaySound(data.Sound);
+    /*public void OnPointerDown(PointerEventData eventData) {
+		PointerGoneDown.Invoke(this);
+    }
+
+    public void OnPointerUp(PointerEventData eventData) {
+		PointerGoneUp.Invoke(this);
+    }*/
+
+    public void Show(bool show) {
+        gameObject.SetActive(show);
     }
 
 	public void Hide() {
 		gameObject.SetActive(false);
-		PlaySound(data.Sound);
 	}
 
 	public void ResetTransform() {
@@ -88,18 +93,8 @@ public class PlayObject : MonoBehaviour
 		transform.localRotation = Quaternion.identity;
 		transform.localScale = Vector3.one;
 	}
-	#endregion
+    #endregion
 
-	#region Private methods
-	private void PlaySound(AudioClip sound) {
-		if (sound != null) {
-			audioManager.PlayEffect(sound, transform.position);
-		}
-	}
-
-    /*private void Enable() {
-		gameObject.SetActive(true);
-		
-    }*/
+    #region Private methods
     #endregion
 }

@@ -2,8 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 using UnityEngine.Events;
-using UnityEditor;
-using CrazyGames;
 
 public class SceneLoader : MonoBehaviour {
 	#region Fields
@@ -20,11 +18,7 @@ public class SceneLoader : MonoBehaviour {
 
 	#region Unity methods
 	private void Awake() {
-        CrazySDK.Init(() =>
-        {
-			CrazySDK.Game.HideInviteButton();
-			Invoke(nameof(LoadScene), loadDelay);
-        });
+        Invoke(nameof(LoadScene), loadDelay);
     }
 	#endregion
 

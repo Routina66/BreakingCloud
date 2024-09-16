@@ -2,6 +2,9 @@ using UnityEngine;
 using System.Collections;
  
 public class #SCRIPTNAME# : MonoBehaviour {
+	#region Readonly fields
+	#endregion
+	
 	#region Serialize fields
 	#endregion
 

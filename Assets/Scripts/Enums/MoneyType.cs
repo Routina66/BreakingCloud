@@ -1,5 +1,5 @@
 /// <summary>
-/// It enumerates the diferent types of money in the game.
+/// It enumerates the diferent types of playerMoney in the game.
 /// </summary>
 public enum MoneyType {
 	GameMoney,

@@ -157,10 +157,14 @@ MonoBehaviour:
       TermType: 0
       Description: 
       Languages:
-      - Hit the bricks with the ball to break them. When you break a brik with  a
-        piece of furniture, the piece of furniture is placed in its place.
-      - 'Golpea los ladrillos con la bola para romperlos. Cuando rompes un ladrillo
-        con un muebl  el mueble se coloca en su sitio. '
+      - 'Move the cloud to do the ball bounces and hits the bricks . When a brick
+        within a piece of furniture is broken the piece of furniture is placed in
+        its place.
+
+        Color proression of a brick before break:'
+      - "Mueve la nube para  hacer que la bola rebote y golpee los ladrillos. Cuando
+        rompes un ladrillo que contiene un mueble el mueble se coloca en su sitio.\nProgresi\xF3n
+        de colores de un ladrillo antes de romperse:"
       Flags: 0000
       Languages_Touch: []
     - Term: Label_Or
@@ -308,12 +312,12 @@ MonoBehaviour:
       - 'ERROR: No se encuentra el archivo.'
       Flags: 0000
       Languages_Touch: []
-    - Term: Msg_FinishRecording
+    - Term: EndGame
       TermType: 0
       Description: 
       Languages:
-      - Finish recording
-      - "Grabaci\xF3n finalizada"
+      - End play
+      - Terminar juego
       Flags: 0000
       Languages_Touch: []
     - Term: Msg_IsRated
@@ -691,7 +695,7 @@ MonoBehaviour:
       Description: 
       Languages:
       - 'The game ends when all pieces of furniture are in their places (you win)
-        or the ball falls to the floor.
+        or the ball falls to the floor (you lose.
 
         Enjoy!'
       - "El juego termina cuando colocas todos los muebles en su sitio (ganas) o
@@ -1114,12 +1118,12 @@ MonoBehaviour:
       - "Cr\xE9ditos"
       Flags: 0000
       Languages_Touch: []
-    - Term: ObjectsInPlace
+    - Term: CoinsCollected
       TermType: 0
       Description: 
       Languages:
-      - Objects in place
-      - Objetos puestos
+      - Coins collected
+      - Monedas recogidas
       Flags: 0000
       Languages_Touch: []
     - Term: AtomBalll
@@ -1261,22 +1265,63 @@ MonoBehaviour:
       Description: 
       Languages:
       - Reward x2
-      - Recompensa x 2
+      - Monedas x 2
       Flags: 0000
       Languages_Touch: []
     - Term: MoveCloudText
       TermType: 0
       Description: 
       Languages:
-      - 'On mobile you must play on landscape orientation. Press the left side of
-        the screen to move the cloud to the left and press the right side of the
-        screen to move the cloud to the right.
-
-        On PC move the cloud with: '
-      - "En m\xF3vil debes jugar en orientanci\xF3n horizontal (landscape). Pulsa
-        la parte izquierda de la pantalla para mover la nube hacia la izquierda y
-        pulsa la parte derecha de la pantalla para mover la nubhe hacia la izquierda.\nEn
-        PC mueve la nube con:"
+      - 'Move the cloud with: '
+      - 'Mueve la nube con:'
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Empty
+      TermType: 0
+      Description: 
+      Languages:
+      - Empty
+      - "Vac\xEDo"
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Level
+      TermType: 0
+      Description: 
+      Languages:
+      - Level
+      - Nivel
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Spin
+      TermType: 0
+      Description: 
+      Languages:
+      - Spin
+      - Girar
+      Flags: 0000
+      Languages_Touch: []
+    - Term: SpinRoulette
+      TermType: 0
+      Description: 
+      Languages:
+      - Spin roulette
+      - Girar ruleta
+      Flags: 0000
+      Languages_Touch: []
+    - Term: Roulette
+      TermType: 0
+      Description: 
+      Languages:
+      - Fortune spin weel
+      - Ruleta de la suerte
+      Flags: 0000
+      Languages_Touch: []
+    - Term: LevelFailed
+      TermType: 0
+      Description: 
+      Languages:
+      - Level failed
+      - Nivel fallado
       Flags: 0000
       Languages_Touch: []
     CaseInsensitiveTerms: 0

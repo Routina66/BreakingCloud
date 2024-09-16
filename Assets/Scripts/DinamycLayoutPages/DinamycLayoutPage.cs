@@ -105,11 +105,14 @@ public abstract class DinamycLayoutPage : MonoBehaviour {
         toggleTransform.localEulerAngles = Vector3.zero;
 
         toggle.gameObject.SetActive(true);
+        
         RegisterToggle(toggle);
 
         if (setSize) {
             SetTogglesHolderSize();
         }
+
+        Debug.Log("Toggle added: " + toggle.name + " " + transform.parent.parent.name);
     }
 
     /// <summary>
@@ -132,10 +135,11 @@ public abstract class DinamycLayoutPage : MonoBehaviour {
     /// <param name="toggle">The toggle to removed.</param>
     /// <param name="setHolderSize">If true the size of the togglesHolder size will be changed after to remove the toggle .</param>
     public void RemoveToggle(Toggle toggle, bool setHolderSize = true) {
+        toggles.Remove(toggle);
+
+        Debug.Log("Toggle destroyed: " + toggle.name + " " + transform.parent.parent.name);
 
         UnregisterToggle(toggle);
-        //toggle.transform.SetParent(transform.root);
-        //toggle.gameObject.SetActive(false);
         DestroyImmediate(toggle.gameObject);
 
         if (setHolderSize) {
@@ -148,7 +152,7 @@ public abstract class DinamycLayoutPage : MonoBehaviour {
     /// </summary>
     /// <param name="togglesArray">The toggles to remove</param>
     /// /// <param name="setHolderSize">If true the size of the togglesHolder size will be changed after to remove the toggles.</param>
-    public void RemoveToggles(Toggle[] togglesArray, bool setHolderSize = true) {
+    /*public void RemoveToggles(Toggle[] togglesArray, bool setHolderSize = true) {
         foreach (var toggle in togglesArray) {
             RemoveToggle(toggle, false);
         }
@@ -156,7 +160,7 @@ public abstract class DinamycLayoutPage : MonoBehaviour {
         if (setHolderSize) {
             Invoke(nameof(SetTogglesHolderSize), 2f);
         }
-    }
+    }*/
 
     /// <summary>
     /// Set the size of itemsHolderTransform.
@@ -167,7 +171,11 @@ public abstract class DinamycLayoutPage : MonoBehaviour {
     /// Remove all toggles in the page.
     /// </summary>
     public void Clear() {
-        RemoveToggles(toggles.ToArray(), false);
+        for (int i = 0; i < toggles.Count; i++) {
+            RemoveToggle(toggles[i], false);
+        }
+
+        //RemoveToggles(toggles.ToArray(), false);
         Invoke(nameof(SetTogglesHolderSize), 2f);
     }
     #endregion

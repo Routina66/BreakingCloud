@@ -16,25 +16,17 @@ public class Money
 	#endregion
 
 	#region Private fields
-	private AudioManager audioManager;
     #endregion
 
     #region Properties
     public MoneyType MoneyType {
 		get => definition.MoneyType;
 	}
+
 	public int Amount {
-		get {
-			PlaySound();
+		get => amount;
 
-			return amount;
-		}
-
-		set {
-			amount = value;
-
-            PlaySound();
-        }
+		set => amount = value;
 	}
 
 	public Sprite Icon {
@@ -50,10 +42,6 @@ public class Money
     public Money(MoneyDefinition moneyDefinition, int moneyQuantity = 0) {
 		amount = moneyQuantity;
 		definition = moneyDefinition;
-
-		if (audioManager == null) {
-			audioManager = AudioManager.Instance;
-		}
 	}
 	#endregion
 
@@ -61,13 +49,6 @@ public class Money
 	#endregion
 
 	#region Private methods
-	private void PlaySound() {
-		if (audioManager == null) {
-			audioManager = AudioManager.Instance;
-		}
-
-        audioManager.PlayEffect(definition.Sound);
-    }
     #endregion
 
 }
